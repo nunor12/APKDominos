@@ -1,0 +1,212 @@
+USE [POS]
+GO
+/****** Object:  StoredProcedure [dbo].[spGetInvoicesForSAFTXML]    Script Date: 06/02/2026 12:35:39 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+-- ==================================================  
+-- Author:  Sourav Saraf  
+-- Create date: 01/09/2015 
+-- Description: Get details for Invoice For SAFT
+-- ==================================================  
+ALTER PROCEDURE [dbo].[spGetInvoicesForSAFTXML] 
+(
+	@LocationCode AS NVARCHAR(8),    
+	@StartDate AS DATETIME,    
+	@EndDate AS DATETIME      
+)
+AS
+BEGIN
+SET NOCOUNT ON
+
+SELECT DISTINCT
+    OHS.InvoiceNumber,
+    OHS.Order_Number,
+    OHS.HashValue,
+    OHS.InvoiceSeriesCode,
+    OHS.IsOfficial,
+    OHS.IsManual,
+    OHS.ManualInvoiceReferenceNumber,
+    OHS.CreditReferenceNumber,
+    OHS.InvoiceDate,
+    CASE  WHEN SM.ServiceMethodGroup='DELIVERY' THEN 1 ELSE 0 END AS IsDelivery,
+    ORD.Customer_Code,
+    ORD.TotalSalesTax AS Sales_Tax1,
+    ORD.Added_By,
+    ORD.SubTotal,
+    ORD.OrderFinalPrice,
+    RD.OrderStreetName AS StreetName,
+    RD.OrderStreetNumber AS StreetNumber,
+    RD.OrderCityName AS City,
+    RD.OrderPostalCode AS Postal,
+    ORD.OrderDiscountAmt AS DiscountAmount,
+    ROD.ReceiptDetailLineNumber AS Line_Number,
+    OL.OrdLineFinalPrice,
+    OL.OrdLineTaxAmt,
+    OL.ProductCode,
+    OL.Quantity,
+    OL.Order_Number AS OrderNumber,
+    OL.Order_Date AS OrderDate,
+    OL.Discount_Amount AS LineDiscountAmount,
+    ROD.ReceiptDetailProductDesc AS ProdTextProductDesc,
+    OHS.ActualOrderDate AS ActualOrderDate,
+    OP2.OrdPayUpdateUserCode,
+    OP2.OrdPayAmt,
+    OP2.OrdPayIsLater,
+    OP2.Order_Pay_Type_Code AS OrderPayTypeCode,
+    OP2.OrdPayCSRCode,
+    OI.Response AS TaxID,
+    Isnull(ROD.TAXRATE,0) AS TaxRate,
+    RD.InvoiceSeriesIdentifier,
+	ISI.VerificationCode
+FROM GovernmentReceipt..OrderHashes AS OHS WITH (NOLOCK)
+    LEFT JOIN Orders AS ORD WITH (NOLOCK) ON
+        OHS.Location_Code = ORD.Location_Code
+        AND OHS.Order_Number = ORD.Order_Number
+        AND OHS.Order_Date = ORD.Order_Date
+    LEFT JOIN ServiceMethods AS SM WITH (NOLOCK) ON
+        ORD.Location_Code=SM.Location_Code
+        AND ORD.Order_Type_Code=SM.ServiceMethodCode
+    LEFT JOIN OrderPayments2 AS OP2 WITH (NOLOCK) ON
+        OHS.Location_Code = OP2.Location_Code
+        AND OHS.Order_Number = OP2.Order_Number
+        AND OHS.Order_Date = OP2.Order_Date
+    LEFT JOIN Order_Lines AS OL WITH (NOLOCK) ON
+        OHS.Location_Code = OL.Location_Code
+        AND OHS.Order_Number = OL.Order_Number
+        AND OHS.Order_Date = OL.Order_Date
+    LEFT JOIN OrderInformation AS OI WITH (NOLOCK) ON
+        OHS.Location_Code=OI.Location_Code
+        AND OHS.Order_Number=OI.Order_Number
+        AND OHS.Order_Date=OI.Order_Date
+        AND OI.KeyCode = 'TaxID'
+    LEFT JOIN GovernmentReceipt..ReceiptOrderDetails AS ROD WITH (NOLOCK) ON
+        OL.Location_Code = ROD.Location_Code
+        AND OL.ProductCode = ROD.ReceiptDetailProductCode
+        AND OL.Order_Number = ROD.Order_Number
+        AND OL.Order_Date = ROD.Order_Date
+        AND OL.Line_Number = ROD.LineNumber
+    LEFT JOIN GovernmentReceipt..ReceiptData AS RD WITH (NOLOCK) ON   
+        OHS.Location_Code = RD.Location_Code
+        AND OHS.Order_Number = RD.Order_Number
+        AND OHS.Order_Date = RD.Order_Date
+	Left Join GovernmentReceipt..InvoiceSeriesIdentifier as ISI with (NOLOCK) ON
+		OHS.Location_Code = ISI.Location_Code
+		AND OHS.InvoiceSeriesCode = ISI.InvoiceSeriesCode
+		AND rd.InvoiceSeriesIdentifier = ISI.InvoiceSeriesIdentifier
+WHERE
+    OHS.InvoiceDate >= @StartDate
+    AND OHS.InvoiceDate < @EndDate
+    AND OHS.Location_Code = @LocationCode
+    AND ORD.Order_Status_Code <> 102
+ORDER BY 
+    OHS.HashValue,
+    ROD.ReceiptDetailLineNumber
+END
+USE [POS]
+GO
+/****** Object:  StoredProcedure [dbo].[spGetInvoicesForSAFTXML]    Script Date: 06/02/2026 12:35:39 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+-- ==================================================  
+-- Author:  Sourav Saraf  
+-- Create date: 01/09/2015 
+-- Description: Get details for Invoice For SAFT
+-- ==================================================  
+ALTER PROCEDURE [dbo].[spGetInvoicesForSAFTXML] 
+(
+	@LocationCode AS NVARCHAR(8),    
+	@StartDate AS DATETIME,    
+	@EndDate AS DATETIME      
+)
+AS
+BEGIN
+SET NOCOUNT ON
+
+SELECT DISTINCT
+    OHS.InvoiceNumber,
+    OHS.Order_Number,
+    OHS.HashValue,
+    OHS.InvoiceSeriesCode,
+    OHS.IsOfficial,
+    OHS.IsManual,
+    OHS.ManualInvoiceReferenceNumber,
+    OHS.CreditReferenceNumber,
+    OHS.InvoiceDate,
+    CASE  WHEN SM.ServiceMethodGroup='DELIVERY' THEN 1 ELSE 0 END AS IsDelivery,
+    ORD.Customer_Code,
+    ORD.TotalSalesTax AS Sales_Tax1,
+    ORD.Added_By,
+    ORD.SubTotal,
+    ORD.OrderFinalPrice,
+    RD.OrderStreetName AS StreetName,
+    RD.OrderStreetNumber AS StreetNumber,
+    RD.OrderCityName AS City,
+    RD.OrderPostalCode AS Postal,
+    ORD.OrderDiscountAmt AS DiscountAmount,
+    ROD.ReceiptDetailLineNumber AS Line_Number,
+    OL.OrdLineFinalPrice,
+    OL.OrdLineTaxAmt,
+    OL.ProductCode,
+    OL.Quantity,
+    OL.Order_Number AS OrderNumber,
+    OL.Order_Date AS OrderDate,
+    OL.Discount_Amount AS LineDiscountAmount,
+    ROD.ReceiptDetailProductDesc AS ProdTextProductDesc,
+    OHS.ActualOrderDate AS ActualOrderDate,
+    OP2.OrdPayUpdateUserCode,
+    OP2.OrdPayAmt,
+    OP2.OrdPayIsLater,
+    OP2.Order_Pay_Type_Code AS OrderPayTypeCode,
+    OP2.OrdPayCSRCode,
+    OI.Response AS TaxID,
+    Isnull(ROD.TAXRATE,0) AS TaxRate,
+    RD.InvoiceSeriesIdentifier,
+	ISI.VerificationCode
+FROM GovernmentReceipt..OrderHashes AS OHS WITH (NOLOCK)
+    LEFT JOIN Orders AS ORD WITH (NOLOCK) ON
+        OHS.Location_Code = ORD.Location_Code
+        AND OHS.Order_Number = ORD.Order_Number
+        AND OHS.Order_Date = ORD.Order_Date
+    LEFT JOIN ServiceMethods AS SM WITH (NOLOCK) ON
+        ORD.Location_Code=SM.Location_Code
+        AND ORD.Order_Type_Code=SM.ServiceMethodCode
+    LEFT JOIN OrderPayments2 AS OP2 WITH (NOLOCK) ON
+        OHS.Location_Code = OP2.Location_Code
+        AND OHS.Order_Number = OP2.Order_Number
+        AND OHS.Order_Date = OP2.Order_Date
+    LEFT JOIN Order_Lines AS OL WITH (NOLOCK) ON
+        OHS.Location_Code = OL.Location_Code
+        AND OHS.Order_Number = OL.Order_Number
+        AND OHS.Order_Date = OL.Order_Date
+    LEFT JOIN OrderInformation AS OI WITH (NOLOCK) ON
+        OHS.Location_Code=OI.Location_Code
+        AND OHS.Order_Number=OI.Order_Number
+        AND OHS.Order_Date=OI.Order_Date
+        AND OI.KeyCode = 'TaxID'
+    LEFT JOIN GovernmentReceipt..ReceiptOrderDetails AS ROD WITH (NOLOCK) ON
+        OL.Location_Code = ROD.Location_Code
+        AND OL.ProductCode = ROD.ReceiptDetailProductCode
+        AND OL.Order_Number = ROD.Order_Number
+        AND OL.Order_Date = ROD.Order_Date
+        AND OL.Line_Number = ROD.LineNumber
+    LEFT JOIN GovernmentReceipt..ReceiptData AS RD WITH (NOLOCK) ON   
+        OHS.Location_Code = RD.Location_Code
+        AND OHS.Order_Number = RD.Order_Number
+        AND OHS.Order_Date = RD.Order_Date
+	Left Join GovernmentReceipt..InvoiceSeriesIdentifier as ISI with (NOLOCK) ON
+		OHS.Location_Code = ISI.Location_Code
+		AND OHS.InvoiceSeriesCode = ISI.InvoiceSeriesCode
+		AND rd.InvoiceSeriesIdentifier = ISI.InvoiceSeriesIdentifier
+WHERE
+    OHS.InvoiceDate >= @StartDate
+    AND OHS.InvoiceDate < @EndDate
+    AND OHS.Location_Code = @LocationCode
+    AND ORD.Order_Status_Code <> 102
+ORDER BY 
+    OHS.HashValue,
+    ROD.ReceiptDetailLineNumber
+END

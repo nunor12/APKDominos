@@ -1,0 +1,42 @@
+USE [POS]
+GO
+/****** Object:  StoredProcedure [dbo].[spGetProductsForSAFTXML]    Script Date: 06/02/2026 12:55:50 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+
+-- ==========================================================
+-- Modified By: Sourav Saraf
+-- Create date: 01/03/2015
+-- Description: Procedure to GetProductsForSAFTXML 
+-- ==========================================================
+ALTER PROCEDURE [dbo].[spGetProductsForSAFTXML]
+(
+	@LocationCode AS NVARCHAR(8), 
+	@ProductCodes AS NVARCHAR(MAX)
+)
+AS  
+BEGIN
+SET NOCOUNT ON
+
+DECLARE	@LanguageCode AS SMALLINT
+SET @LanguageCode=dbo.udfSYSGetSystemSetting(@LocationCode,'Default_Language_Code')
+
+	SELECT DISTINCT 
+			P.ProductCode,
+			P.ProductCategoryCode,
+			PT.ProdTextProductDesc 
+	FROM [dbo].[Products] (NOLOCK) AS P 
+		INNER JOIN [dbo].[ProductsText] (NOLOCK) AS PT ON 
+			(
+				P.ProductCode=PT.ProductCode
+				AND P.Location_Code=PT.Location_Code
+				AND PT.Language_Code=@LanguageCode
+			)
+	WHERE
+		(
+			P.Location_Code=@LocationCode 
+			AND P.ProductCode IN (SELECT * FROM dbo.udfSplit(@ProductCodes ,'|'))
+		)
+END

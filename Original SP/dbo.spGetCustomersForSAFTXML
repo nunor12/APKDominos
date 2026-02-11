@@ -1,0 +1,80 @@
+USE [POS]
+GO
+/****** Object:  StoredProcedure [dbo].[spGetCustomersForSAFTXML]    Script Date: 06/02/2026 12:54:59 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- ==========================================================
+-- Modified By: Sourav Saraf
+-- Create date: 01/03/2015
+-- Description:Procedure to GetCustomersForSAFTXML 
+-- ==========================================================
+ALTER PROCEDURE [dbo].[spGetCustomersForSAFTXML]
+( 
+	@LocationCode AS NVARCHAR(8),
+    @InvoiceNumbers AS NVARCHAR(MAX)
+)
+AS
+BEGIN
+SET NOCOUNT ON
+
+DECLARE @cols AS NVARCHAR(MAX),
+		@query  AS NVARCHAR(MAX)
+
+select @cols = STUFF((SELECT DISTINCT ',' + QUOTENAME(KeyCode)
+                    FROM OrderInformationItems
+            FOR XML PATH(''), TYPE
+            ).value('.', 'NVARCHAR(MAX)')
+        ,1,1,'')
+        
+SET @query = 'SELECT DISTINCT Customer_Name,
+							  OrderStreetName,
+							  OrderStreetNumber,
+							  OrderPostalCode,
+							  OrderCityName,
+							  Customer_Code,
+							  Order_Date,
+							  Order_Number,
+							  ' + @cols + '
+              FROM
+			  (
+                SELECT O.Customer_Name,
+					   O.Customer_Code,
+					   O.OrderStreetName,
+					   O.OrderStreetNumber,
+					   O.OrderPostalCode,
+					   O.OrderCityName,O.Order_Number,
+					   O.Order_Date,
+					   OI.KeyCode,
+					   OI.Response					   
+                FROM GovernmentReceipt..OrderHashes (NOLOCK) AS OHS
+                INNER JOIN  Orders (NOLOCK) AS O ON
+                (
+					O.Location_Code=OHS.Location_Code
+					AND O.Order_number=OHS.Order_number 
+					AND O.Order_Date=OHS.Order_Date 
+				)
+                LEFT OUTER JOIN OrderInformation (NOLOCK) AS OI ON 
+                (
+					O.Location_Code=OI.Location_Code					 
+					AND O.Order_Number=OI.Order_Number
+				    AND O.Order_Date=OI.Order_Date
+				)
+				WHERE 
+				(
+					OHS.Location_Code = ''' + @LocationCode  + '''
+					AND OHS.InvoiceNumber IN (SELECT * FROM dbo.udfSplit('''+@InvoiceNumbers+''' ,''|'')) 
+				) 			
+ 
+            ) x
+            PIVOT
+            (
+                Max(Response)
+                FOR KeyCode IN (' + @cols + ')
+            ) p
+           ORDER BY Customer_Code,Order_Date DESC,Order_Number DESC'
+execute(@query)
+END
+SET QUOTED_IDENTIFIER OFF
