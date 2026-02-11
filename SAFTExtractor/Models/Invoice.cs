@@ -48,6 +48,7 @@ namespace SAFTExtractor.Models
         public string TaxCode { get; set; } = "NOR";
         public decimal TaxPercentage { get; set; }
         public string? TaxExemptionReason { get; set; }
+        public string? TaxExemptionCode { get; set; } // M01-M99 (códigos de isenção AT)
         public decimal CreditAmount { get; set; }
         
         // Campos extensíveis

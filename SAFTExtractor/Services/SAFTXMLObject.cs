@@ -240,6 +240,12 @@ namespace SAFTExtractor.Services
                     writer.WriteElementString("TaxPercentage", line.TaxPercentage.ToString("F2"));
                     writer.WriteEndElement(); // Tax
                     
+                    // Campos de isenção (apenas quando aplicável)
+                    if (!string.IsNullOrEmpty(line.TaxExemptionReason))
+                        writer.WriteElementString("TaxExemptionReason", line.TaxExemptionReason);
+                    if (!string.IsNullOrEmpty(line.TaxExemptionCode))
+                        writer.WriteElementString("TaxExemptionCode", line.TaxExemptionCode);
+                    
                     writer.WriteElementString("CreditAmount", line.CreditAmount.ToString("F2"));
                     
                     writer.WriteEndElement(); // Line

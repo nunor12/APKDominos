@@ -149,7 +149,20 @@ BEGIN
         ISNULL(il.TaxCountryRegion, 'PT') AS TaxCountryRegion,
         ISNULL(il.TaxCode, 'NOR') AS TaxCode,  -- NOR, RED, INT, ISE
         il.TaxRate AS TaxPercentage,
-        il.TaxExemptionReason AS TaxExemptionReason,  -- Para taxas isentas
+        
+        -- Campos de isenção (apenas para produtos isentos)
+        -- Exemplo: produto 'DONATPTONV' (donativos) é isento
+        CASE 
+            WHEN il.ProductCode = 'DONATPTONV' THEN 'Nao sujeito; nao tributado'
+            WHEN il.TaxCode = 'ISE' AND il.TaxExemptionReason IS NOT NULL THEN il.TaxExemptionReason
+            ELSE NULL
+        END AS TaxExemptionReason,
+        
+        CASE 
+            WHEN il.ProductCode = 'DONATPTONV' THEN 'M99'  -- M99 = Outras isenções
+            WHEN il.TaxCode = 'ISE' AND il.TaxExemptionCode IS NOT NULL THEN il.TaxExemptionCode
+            ELSE NULL
+        END AS TaxExemptionCode,
         
         -- Valor
         il.LineAmount AS CreditAmount  -- Total da linha
@@ -162,6 +175,64 @@ BEGIN
 END
 GO
 ```
+
+### 📝 Códigos de Isenção Válidos (TaxExemptionCode)
+
+Os códigos de isenção mais comuns conforme legislação portuguesa:
+
+- **M01** - Artigo 16.º n.º 6 do CIVA (Isenções nas operações internas)
+- **M02** - Artigo 6.º do Decreto-Lei n.º 198/90
+- **M04** - Isento Artigo 13.º do CIVA
+- **M05** - Isento Artigo 14.º do CIVA
+- **M06** - Isento Artigo 15.º do CIVA
+- **M07** - Isento Artigo 9.º do CIVA
+- **M09** - IVA - Não confere direito a dedução
+- **M10** - IVA - Regime de isenção
+- **M11** - Regime particular do tabaco
+- **M12** - Regime da margem de lucro - Agências de viagens
+- **M13** - Regime da margem de lucro - Bens em segunda mão
+- **M14** - Regime da margem de lucro - Objetos de arte
+- **M15** - Regime da margem de lucro - Objetos de coleção e antiguidades
+- **M16** - Isento Artigo 14.º do RITI
+- **M19** - Outras isenções (Artigos 53.º, 55.º e 58.º do CIVA)
+- **M20** - IVA - Regime forfetário
+- **M21** - IVA - Não confere direito a dedução (Decreto-Lei 198/90)
+- **M25** - Mercadorias à consignação
+- **M30** - IVA - Autoliquidação
+- **M31** - IVA - Autoliquidação (Artigo 2.º Decreto-Lei 21/2007)
+- **M32** - IVA - Autoliquidação (Artigo 6.º Decreto-Lei 21/2007)
+- **M40** - IVA - Autoliquidação (Artigo 6.º Decreto-Lei 362-A/88)
+- **M41** - IVA - Autoliquidação
+- **M42** - IVA - Autoliquidação
+- **M43** - IVA - Autoliquidação
+- **M99** - Não sujeito; não tributado (IVA)
+
+### 💡 Exemplo Prático
+
+Para o produto **DONATPTONV** (donativos), a linha no SAFT XML ficará:
+
+```xml
+<Line>
+    <LineNumber>1</LineNumber>
+    <ProductCode>DONATPTONV</ProductCode>
+    <ProductDescription>Donativo PT Outras Necessidades Vitimas</ProductDescription>
+    <Quantity>1.00</Quantity>
+    <UnitOfMeasure>UN</UnitOfMeasure>
+    <UnitPrice>0.50</UnitPrice>
+    <TaxPointDate>2024-01-15</TaxPointDate>
+    <Tax>
+        <TaxType>IVA</TaxType>
+        <TaxCountryRegion>PT</TaxCountryRegion>
+        <TaxCode>ISE</TaxCode>
+        <TaxPercentage>0.00</TaxPercentage>
+    </Tax>
+    <TaxExemptionReason>Nao sujeito; nao tributado</TaxExemptionReason>
+    <TaxExemptionCode>M99</TaxExemptionCode>
+    <CreditAmount>0.50</CreditAmount>
+</Line>
+```
+
+
 
 ## 5. spGetSAFTHeader
 
@@ -270,6 +341,8 @@ EXEC spGetSAFTHeader
 - ✅ UnitPrice
 - ✅ TaxType
 - ✅ TaxPercentage
+- ⚠️ TaxExemptionReason (obrigatório quando TaxCode = ISE)
+- ⚠️ TaxExemptionCode (obrigatório quando TaxCode = ISE)
 
 ## 💡 Dicas
 
@@ -277,6 +350,9 @@ EXEC spGetSAFTHeader
 2. **Dados de Teste**: Comece testando com um período pequeno (1 mês)
 3. **Validação**: Sempre valide os dados antes de gerar o SAFT final
 4. **ATCUD**: Campo obrigatório desde 2023 - certifique-se de ter este campo preenchido
+5. **Campos de Isenção**: TaxExemptionReason e TaxExemptionCode são obrigatórios quando TaxCode = 'ISE'
+6. **TaxExemptionCode**: Use códigos válidos da AT (M01-M99). Ver lista completa acima
+7. **TaxExemptionReason**: Texto livre até 60 caracteres explicando a isenção
 5. **Hash**: Obrigatório para assinatura de documentos - deve ser calculado pelo seu ERP
 
 ## ⚠️ Notas Importantes

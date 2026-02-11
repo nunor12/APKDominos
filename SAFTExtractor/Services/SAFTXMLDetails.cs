@@ -201,6 +201,8 @@ namespace SAFTExtractor.Services
                                 TaxPercentage = Convert.ToDecimal(reader["TaxPercentage"]),
                                 TaxExemptionReason = reader["TaxExemptionReason"] != DBNull.Value ? 
                                     reader["TaxExemptionReason"].ToString() : null,
+                                TaxExemptionCode = reader["TaxExemptionCode"] != DBNull.Value ? 
+                                    reader["TaxExemptionCode"].ToString() : null,
                                 CreditAmount = Convert.ToDecimal(reader["CreditAmount"])
                                 
                                 // ADICIONE AQUI NOVOS CAMPOS:
