@@ -40,13 +40,16 @@ partial class SAFTAdditionForm
         this.lblServer = new System.Windows.Forms.Label();
         this.btnTestConnection = new System.Windows.Forms.Button();
         this.grpSAFT = new System.Windows.Forms.GroupBox();
-        this.numFiscalYear = new System.Windows.Forms.NumericUpDown();
+        this.lblStartDate = new System.Windows.Forms.Label();
+        this.lblEndDate = new System.Windows.Forms.Label();
+        this.startDatePicker = new System.Windows.Forms.DateTimePicker();
+        this.endDatePicker = new System.Windows.Forms.DateTimePicker();
         this.lblFiscalYear = new System.Windows.Forms.Label();
+        this.txtFiscalYear = new System.Windows.Forms.TextBox();
         this.btnGenerate = new System.Windows.Forms.Button();
         this.lblStatus = new System.Windows.Forms.Label();
         this.grpConnection.SuspendLayout();
         this.grpSAFT.SuspendLayout();
-        ((System.ComponentModel.ISupportInitialize)(this.numFiscalYear)).BeginInit();
         this.SuspendLayout();
         // 
         // grpConnection
@@ -157,40 +160,79 @@ partial class SAFTAdditionForm
         // grpSAFT
         // 
         this.grpSAFT.Controls.Add(this.btnGenerate);
+        this.grpSAFT.Controls.Add(this.txtFiscalYear);
         this.grpSAFT.Controls.Add(this.lblFiscalYear);
-        this.grpSAFT.Controls.Add(this.numFiscalYear);
+        this.grpSAFT.Controls.Add(this.endDatePicker);
+        this.grpSAFT.Controls.Add(this.startDatePicker);
+        this.grpSAFT.Controls.Add(this.lblEndDate);
+        this.grpSAFT.Controls.Add(this.lblStartDate);
         this.grpSAFT.Location = new System.Drawing.Point(12, 220);
         this.grpSAFT.Name = "grpSAFT";
-        this.grpSAFT.Size = new System.Drawing.Size(760, 100);
+        this.grpSAFT.Size = new System.Drawing.Size(760, 150);
         this.grpSAFT.TabIndex = 1;
         this.grpSAFT.TabStop = false;
         this.grpSAFT.Text = "Geração de Ficheiro SAFT";
         // 
-        // numFiscalYear
+        // lblStartDate
         // 
-        this.numFiscalYear.Location = new System.Drawing.Point(120, 30);
-        this.numFiscalYear.Maximum = new decimal(new int[] { 2100, 0, 0, 0 });
-        this.numFiscalYear.Minimum = new decimal(new int[] { 2000, 0, 0, 0 });
-        this.numFiscalYear.Name = "numFiscalYear";
-        this.numFiscalYear.Size = new System.Drawing.Size(200, 27);
-        this.numFiscalYear.TabIndex = 0;
-        this.numFiscalYear.Value = new decimal(new int[] { 2024, 0, 0, 0 });
+        this.lblStartDate.AutoSize = true;
+        this.lblStartDate.Location = new System.Drawing.Point(10, 32);
+        this.lblStartDate.Name = "lblStartDate";
+        this.lblStartDate.Size = new System.Drawing.Size(83, 20);
+        this.lblStartDate.TabIndex = 0;
+        this.lblStartDate.Text = "Data Início:";
+        // 
+        // lblEndDate
+        // 
+        this.lblEndDate.AutoSize = true;
+        this.lblEndDate.Location = new System.Drawing.Point(10, 62);
+        this.lblEndDate.Name = "lblEndDate";
+        this.lblEndDate.Size = new System.Drawing.Size(71, 20);
+        this.lblEndDate.TabIndex = 0;
+        this.lblEndDate.Text = "Data Fim:";
+        // 
+        // startDatePicker
+        // 
+        this.startDatePicker.Format = System.Windows.Forms.DateTimePickerFormat.Short;
+        this.startDatePicker.Location = new System.Drawing.Point(120, 30);
+        this.startDatePicker.Name = "startDatePicker";
+        this.startDatePicker.Size = new System.Drawing.Size(200, 27);
+        this.startDatePicker.TabIndex = 0;
+        this.startDatePicker.ValueChanged += new System.EventHandler(this.StartDatePicker_ValueChanged);
+        // 
+        // endDatePicker
+        // 
+        this.endDatePicker.Format = System.Windows.Forms.DateTimePickerFormat.Short;
+        this.endDatePicker.Location = new System.Drawing.Point(120, 60);
+        this.endDatePicker.Name = "endDatePicker";
+        this.endDatePicker.Size = new System.Drawing.Size(200, 27);
+        this.endDatePicker.TabIndex = 1;
+        this.endDatePicker.ValueChanged += new System.EventHandler(this.EndDatePicker_ValueChanged);
         // 
         // lblFiscalYear
         // 
         this.lblFiscalYear.AutoSize = true;
-        this.lblFiscalYear.Location = new System.Drawing.Point(10, 32);
+        this.lblFiscalYear.Location = new System.Drawing.Point(10, 92);
         this.lblFiscalYear.Name = "lblFiscalYear";
         this.lblFiscalYear.Size = new System.Drawing.Size(78, 20);
         this.lblFiscalYear.TabIndex = 0;
         this.lblFiscalYear.Text = "Ano Fiscal:";
         // 
+        // txtFiscalYear
+        // 
+        this.txtFiscalYear.Location = new System.Drawing.Point(120, 90);
+        this.txtFiscalYear.Name = "txtFiscalYear";
+        this.txtFiscalYear.ReadOnly = true;
+        this.txtFiscalYear.Size = new System.Drawing.Size(100, 27);
+        this.txtFiscalYear.TabIndex = 2;
+        this.txtFiscalYear.TabStop = false;
+        // 
         // btnGenerate
         // 
-        this.btnGenerate.Location = new System.Drawing.Point(120, 60);
+        this.btnGenerate.Location = new System.Drawing.Point(120, 115);
         this.btnGenerate.Name = "btnGenerate";
         this.btnGenerate.Size = new System.Drawing.Size(200, 30);
-        this.btnGenerate.TabIndex = 1;
+        this.btnGenerate.TabIndex = 3;
         this.btnGenerate.Text = "Gerar Ficheiro SAFT";
         this.btnGenerate.UseVisualStyleBackColor = true;
         this.btnGenerate.Click += new System.EventHandler(this.BtnGenerate_Click);
@@ -198,7 +240,7 @@ partial class SAFTAdditionForm
         // lblStatus
         // 
         this.lblStatus.AutoSize = true;
-        this.lblStatus.Location = new System.Drawing.Point(22, 330);
+        this.lblStatus.Location = new System.Drawing.Point(22, 380);
         this.lblStatus.Name = "lblStatus";
         this.lblStatus.Size = new System.Drawing.Size(59, 20);
         this.lblStatus.TabIndex = 2;
@@ -208,7 +250,7 @@ partial class SAFTAdditionForm
         // 
         this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
         this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-        this.ClientSize = new System.Drawing.Size(784, 361);
+        this.ClientSize = new System.Drawing.Size(784, 411);
         this.Controls.Add(this.lblStatus);
         this.Controls.Add(this.grpSAFT);
         this.Controls.Add(this.grpConnection);
@@ -218,7 +260,6 @@ partial class SAFTAdditionForm
         this.grpConnection.PerformLayout();
         this.grpSAFT.ResumeLayout(false);
         this.grpSAFT.PerformLayout();
-        ((System.ComponentModel.ISupportInitialize)(this.numFiscalYear)).EndInit();
         this.ResumeLayout(false);
         this.PerformLayout();
     }
@@ -237,8 +278,12 @@ partial class SAFTAdditionForm
     private System.Windows.Forms.CheckBox chkIntegratedSecurity;
     private System.Windows.Forms.Button btnTestConnection;
     private System.Windows.Forms.GroupBox grpSAFT;
-    private System.Windows.Forms.NumericUpDown numFiscalYear;
+    private System.Windows.Forms.Label lblStartDate;
+    private System.Windows.Forms.Label lblEndDate;
+    private System.Windows.Forms.DateTimePicker startDatePicker;
+    private System.Windows.Forms.DateTimePicker endDatePicker;
     private System.Windows.Forms.Label lblFiscalYear;
+    private System.Windows.Forms.TextBox txtFiscalYear;
     private System.Windows.Forms.Button btnGenerate;
     private System.Windows.Forms.Label lblStatus;
 }

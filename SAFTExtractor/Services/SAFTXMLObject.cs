@@ -19,19 +19,27 @@ namespace SAFTExtractor.Services
         }
         
         /// <summary>
-        /// Gera o ficheiro SAFT XML completo
+        /// Gera o ficheiro SAFT XML completo (por ano fiscal)
         /// </summary>
         public void GenerateSAFTFile(string outputPath, int fiscalYear)
         {
+            DateTime startDate = SAFTDate.GetFiscalYearStartDate(fiscalYear);
+            DateTime endDate = SAFTDate.GetFiscalYearEndDate(fiscalYear);
+            GenerateSAFTFile(outputPath, startDate, endDate);
+        }
+        
+        /// <summary>
+        /// Gera o ficheiro SAFT XML completo (por datas específicas)
+        /// </summary>
+        public void GenerateSAFTFile(string outputPath, DateTime startDate, DateTime endDate)
+        {
             try
             {
+                int fiscalYear = SAFTDate.GetFiscalYear(startDate);
                 var header = _details.GetHeader(fiscalYear);
                 var customers = _details.GetCustomers();
                 var products = _details.GetProducts();
-                var invoices = _details.GetInvoices(
-                    SAFTDate.GetFiscalYearStartDate(fiscalYear),
-                    SAFTDate.GetFiscalYearEndDate(fiscalYear)
-                );
+                var invoices = _details.GetInvoices(startDate, endDate);
                 
                 // Criar o XML manualmente para ter controle total sobre a estrutura
                 var settings = new XmlWriterSettings
@@ -51,8 +59,8 @@ namespace SAFTExtractor.Services
                     writer.WriteStartElement("AuditFile", "urn:OECD:StandardAuditFile-Tax:PT_1.04_01");
                     writer.WriteAttributeString("xmlns", "xsi", null, "http://www.w3.org/2001/XMLSchema-instance");
                     
-                    // Header
-                    WriteHeader(writer, header);
+                    // Header (com datas personalizadas)
+                    WriteHeader(writer, header, startDate, endDate);
                     
                     // MasterFiles
                     WriteMasterFiles(writer, customers, products);
@@ -75,7 +83,7 @@ namespace SAFTExtractor.Services
         /// <summary>
         /// Escreve o Header do SAFT
         /// </summary>
-        private void WriteHeader(XmlWriter writer, SAFTHeader header)
+        private void WriteHeader(XmlWriter writer, SAFTHeader header, DateTime startDate, DateTime endDate)
         {
             writer.WriteStartElement("Header");
             
@@ -102,11 +110,12 @@ namespace SAFTExtractor.Services
                 writer.WriteEndElement(); // BusinessAddress
             }
             
-            writer.WriteElementString("FiscalYear", header.FiscalYear.Year.ToString());
-            writer.WriteElementString("StartDate", SAFTDate.FormatSAFTDate(header.StartDate));
-            writer.WriteElementString("EndDate", SAFTDate.FormatSAFTDate(header.EndDate));
+            // Usar datas fornecidas em vez das do header
+            writer.WriteElementString("FiscalYear", SAFTDate.GetFiscalYear(startDate).ToString());
+            writer.WriteElementString("StartDate", SAFTDate.FormatSAFTDate(startDate));
+            writer.WriteElementString("EndDate", SAFTDate.FormatSAFTDate(endDate));
             writer.WriteElementString("CurrencyCode", header.CurrencyCode);
-            writer.WriteElementString("DateCreated", SAFTDate.FormatSAFTDate(header.DateCreated));
+            writer.WriteElementString("DateCreated", SAFTDate.FormatSAFTDate(DateTime.Today));
             writer.WriteElementString("TaxEntity", header.TaxEntity);
             writer.WriteElementString("ProductCompanyTaxID", header.ProductCompanyTaxID);
             writer.WriteElementString("SoftwareCertificateNumber", header.SoftwareCertificateNumber);
