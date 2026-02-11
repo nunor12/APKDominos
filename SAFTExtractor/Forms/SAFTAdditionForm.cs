@@ -9,13 +9,11 @@ namespace SAFTExtractor.Forms;
 /// </summary>
 public partial class SAFTAdditionForm : Form
 {
-    private DatabaseConfig _dbConfig;
     private SAFTDate _fiscalYearInfo;
     
     public SAFTAdditionForm()
     {
         InitializeComponent();
-        _dbConfig = new DatabaseConfig();
         _fiscalYearInfo = new SAFTDate();
         InitializeForm();
     }
@@ -24,7 +22,7 @@ public partial class SAFTAdditionForm : Form
     {
         // Configurar título e tamanho
         this.Text = "SAFTExtractor - PULSE DOMINOS";
-        this.Size = new Size(800, 650);
+        this.Size = new Size(600, 350);
         this.StartPosition = FormStartPosition.CenterScreen;
         
         // Inicializar DatePickers
@@ -46,36 +44,10 @@ public partial class SAFTAdditionForm : Form
         txtFiscalYear.Text = _fiscalYearInfo.FiscalYear;
     }
     
-    private void BtnTestConnection_Click(object sender, EventArgs e)
-    {
-        // Obter dados da UI
-        _dbConfig.Server = txtServer.Text;
-        _dbConfig.Database = txtDatabase.Text;
-        _dbConfig.Username = txtUsername.Text;
-        _dbConfig.Password = txtPassword.Text;
-        _dbConfig.IntegratedSecurity = chkIntegratedSecurity.Checked;
-        
-        if (SAFTAdditionStartup.TestConnection(_dbConfig))
-        {
-            MessageBox.Show("Conexão testada com sucesso!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-        else
-        {
-            MessageBox.Show("Erro ao conectar à base de dados. Verifique as configurações.", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-    }
-    
     private void BtnGenerate_Click(object sender, EventArgs e)
     {
         try
         {
-            // Validar configuração
-            if (!_dbConfig.IsValid())
-            {
-                MessageBox.Show("Configure e teste a conexão antes de gerar o ficheiro SAFT.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-            
             // Validar datas
             if (!ValidateDates())
             {
@@ -100,7 +72,7 @@ public partial class SAFTAdditionForm : Form
                     Application.DoEvents();
                     
                     // Gerar ficheiro
-                    var saftGenerator = new SAFTXMLObject(_dbConfig);
+                    var saftGenerator = new SAFTXMLObject();
                     saftGenerator.GenerateSAFTFile(saveDialog.FileName, startDate, endDate);
                     
                     this.Cursor = Cursors.Default;
@@ -114,7 +86,7 @@ public partial class SAFTAdditionForm : Form
         {
             this.Cursor = Cursors.Default;
             lblStatus.Text = "Erro ao gerar ficheiro SAFT.";
-            MessageBox.Show($"Erro ao gerar ficheiro SAFT:\n\n{ex.Message}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show($"Erro ao gerar ficheiro SAFT:\n\n{ex.Message}\n\n{ex.StackTrace}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
     
@@ -164,13 +136,6 @@ public partial class SAFTAdditionForm : Form
         }
         
         return true;
-    }
-    
-    private void ChkIntegratedSecurity_CheckedChanged(object sender, EventArgs e)
-    {
-        // Habilitar/desabilitar campos de usuário e senha
-        txtUsername.Enabled = !chkIntegratedSecurity.Checked;
-        txtPassword.Enabled = !chkIntegratedSecurity.Checked;
     }
     
     private void StartDatePicker_ValueChanged(object sender, EventArgs e)

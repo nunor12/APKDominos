@@ -11,11 +11,8 @@ namespace SAFTExtractor.Services
     /// </summary>
     public class SAFTXMLDetails
     {
-        private readonly DatabaseConfig _dbConfig;
-        
-        public SAFTXMLDetails(DatabaseConfig dbConfig)
+        public SAFTXMLDetails()
         {
-            _dbConfig = dbConfig ?? throw new ArgumentNullException(nameof(dbConfig));
         }
         
         /// <summary>
@@ -25,14 +22,16 @@ namespace SAFTExtractor.Services
         {
             var customers = new List<Customer>();
             
-            using (var connection = new SqlConnection(_dbConfig.GetConnectionString()))
+            using (var connection = PulseConnection.CreateSQLConnection())
             {
                 connection.Open();
                 
-                // TODO: Ajustar nome da SP conforme o seu sistema
                 using (var command = new SqlCommand("spGetCustomersForSAFTXML", connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
+                    command.CommandTimeout = 0;
+                    command.Parameters.AddWithValue("@LocationCode", SystemSettings.LocationCode);
+                    // Parâmetro @InvoiceNumbers será adicionado quando necessário
                     
                     using (var reader = command.ExecuteReader())
                     {
@@ -79,14 +78,16 @@ namespace SAFTExtractor.Services
         {
             var products = new List<Product>();
             
-            using (var connection = new SqlConnection(_dbConfig.GetConnectionString()))
+            using (var connection = PulseConnection.CreateSQLConnection())
             {
                 connection.Open();
                 
-                // TODO: Ajustar nome da SP conforme o seu sistema
                 using (var command = new SqlCommand("spGetProductsForSAFTXML", connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
+                    command.CommandTimeout = 0;
+                    command.Parameters.AddWithValue("@LocationCode", SystemSettings.LocationCode);
+                    // Parâmetro @ProductCodes será adicionado quando necessário
                     
                     using (var reader = command.ExecuteReader())
                     {
@@ -120,15 +121,17 @@ namespace SAFTExtractor.Services
         {
             var invoices = new List<Invoice>();
             
-            using (var connection = new SqlConnection(_dbConfig.GetConnectionString()))
+            using (var connection = PulseConnection.CreateSQLConnection())
             {
                 connection.Open();
                 
-                // TODO: Ajustar nome da SP conforme o seu sistema
                 using (var command = new SqlCommand("spGetInvoicesForSAFTXML", connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
+                    command.CommandTimeout = 0;
+                    command.Parameters.AddWithValue("@LocationCode", SystemSettings.LocationCode);
                     command.Parameters.AddWithValue("@StartDate", startDate);
+                    command.Parameters.AddWithValue("@EndDate", endDate);
                     command.Parameters.AddWithValue("@EndDate", endDate);
                     
                     using (var reader = command.ExecuteReader())
@@ -173,14 +176,15 @@ namespace SAFTExtractor.Services
         {
             var lines = new List<InvoiceLine>();
             
-            using (var connection = new SqlConnection(_dbConfig.GetConnectionString()))
+            using (var connection = PulseConnection.CreateSQLConnection())
             {
                 connection.Open();
                 
-                // TODO: Ajustar nome da SP conforme o seu sistema
+                // Nota: Esta SP não existe nas SPs originais, mas é usada no código
                 using (var command = new SqlCommand("spGetInvoiceLinesForSAFTXML", connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
+                    command.CommandTimeout = 0;
                     command.Parameters.AddWithValue("@InvoiceNo", invoiceNo);
                     
                     using (var reader = command.ExecuteReader())
@@ -222,15 +226,16 @@ namespace SAFTExtractor.Services
         /// </summary>
         public SAFTHeader GetHeader(int fiscalYear)
         {
-            using (var connection = new SqlConnection(_dbConfig.GetConnectionString()))
+            using (var connection = PulseConnection.CreateSQLConnection())
             {
                 connection.Open();
                 
-                // TODO: Ajustar nome da SP conforme o seu sistema
-                using (var command = new SqlCommand("spGetSAFTHeader", connection))
+                // Usar o nome correto da SP: spGetSAFTXMLHeaderDetails
+                using (var command = new SqlCommand("spGetSAFTXMLHeaderDetails", connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.AddWithValue("@FiscalYear", fiscalYear);
+                    command.CommandTimeout = 0;
+                    command.Parameters.AddWithValue("@LocationCode", SystemSettings.LocationCode);
                     
                     using (var reader = command.ExecuteReader())
                     {

@@ -13,9 +13,9 @@ namespace SAFTExtractor.Services
     {
         private readonly SAFTXMLDetails _details;
         
-        public SAFTXMLObject(DatabaseConfig dbConfig)
+        public SAFTXMLObject()
         {
-            _details = new SAFTXMLDetails(dbConfig);
+            _details = new SAFTXMLDetails();
         }
         
         /// <summary>
