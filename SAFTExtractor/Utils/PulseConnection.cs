@@ -1,5 +1,6 @@
 using System.Data.SqlClient;
 using System.Configuration;
+using System.Text.RegularExpressions;
 
 namespace SAFTExtractor.Utils
 {
@@ -30,6 +31,20 @@ namespace SAFTExtractor.Utils
             }
             
             return _connectionString;
+        }
+        
+        /// <summary>
+        /// Obtém a connection string sem a password (para exibir em mensagens de erro)
+        /// </summary>
+        public static string GetConnectionStringSafe()
+        {
+            var connStr = GetConnectionString();
+            
+            // Remover password da connection string
+            var safe = Regex.Replace(connStr, @"Password\s*=\s*[^;]*;?", "Password=****;", RegexOptions.IgnoreCase);
+            safe = Regex.Replace(safe, @"Pwd\s*=\s*[^;]*;?", "Pwd=****;", RegexOptions.IgnoreCase);
+            
+            return safe;
         }
         
         /// <summary>
@@ -65,6 +80,29 @@ namespace SAFTExtractor.Utils
             catch
             {
                 return false;
+            }
+        }
+        
+        /// <summary>
+        /// Testa a conexão e retorna mensagem de erro se falhar
+        /// </summary>
+        public static (bool success, string message) TestConnectionWithDetails()
+        {
+            try
+            {
+                using (var connection = CreateSQLConnection())
+                {
+                    connection.Open();
+                    return (true, $"Conexão estabelecida com sucesso!\nServidor: {connection.DataSource}\nBase de dados: {connection.Database}");
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                return (false, $"Erro SQL: {sqlEx.Message}\nConnection String: {GetConnectionStringSafe()}");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Erro: {ex.Message}\nConnection String: {GetConnectionStringSafe()}");
             }
         }
     }

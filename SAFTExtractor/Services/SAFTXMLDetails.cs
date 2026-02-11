@@ -226,55 +226,133 @@ namespace SAFTExtractor.Services
         /// </summary>
         public SAFTHeader GetHeader(int fiscalYear)
         {
-            using (var connection = PulseConnection.CreateSQLConnection())
+            try
             {
-                connection.Open();
-                
-                // Usar o nome correto da SP: spGetSAFTXMLHeaderDetails
-                using (var command = new SqlCommand("spGetSAFTXMLHeaderDetails", connection))
+                using (var connection = PulseConnection.CreateSQLConnection())
                 {
-                    command.CommandType = CommandType.StoredProcedure;
-                    command.CommandTimeout = 0;
-                    command.Parameters.AddWithValue("@LocationCode", SystemSettings.LocationCode);
+                    connection.Open();
                     
-                    using (var reader = command.ExecuteReader())
+                    // Usar o nome correto da SP: spGetSAFTXMLHeaderDetails
+                    using (var command = new SqlCommand("spGetSAFTXMLHeaderDetails", connection))
                     {
-                        if (reader.Read())
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.CommandTimeout = 0;
+                        command.Parameters.AddWithValue("@LocationCode", SystemSettings.LocationCode);
+                        
+                        using (var reader = command.ExecuteReader())
                         {
-                            return new SAFTHeader
+                            if (reader.Read())
                             {
-                                AuditFileVersion = reader["AuditFileVersion"].ToString() ?? "1.04_01",
-                                CompanyID = reader["CompanyID"].ToString() ?? string.Empty,
-                                TaxRegistrationNumber = reader["TaxRegistrationNumber"].ToString() ?? string.Empty,
-                                TaxAccountingBasis = reader["TaxAccountingBasis"].ToString() ?? "F",
-                                CompanyName = reader["CompanyName"].ToString() ?? string.Empty,
-                                BusinessAddress = new CompanyAddress
+                                return new SAFTHeader
                                 {
-                                    BuildingNumber = reader["BuildingNumber"] != DBNull.Value ? reader["BuildingNumber"].ToString() : null,
-                                    StreetName = reader["StreetName"] != DBNull.Value ? reader["StreetName"].ToString() : null,
-                                    AddressDetail = reader["AddressDetail"].ToString() ?? string.Empty,
-                                    City = reader["City"].ToString() ?? string.Empty,
-                                    PostalCode = reader["PostalCode"].ToString() ?? string.Empty,
-                                    Region = reader["Region"] != DBNull.Value ? reader["Region"].ToString() : null,
-                                    Country = reader["Country"].ToString() ?? "PT"
-                                },
-                                FiscalYear = new DateTime(fiscalYear, 1, 1),
-                                StartDate = SAFTDate.GetFiscalYearStartDate(fiscalYear),
-                                EndDate = SAFTDate.GetFiscalYearEndDate(fiscalYear),
-                                CurrencyCode = reader["CurrencyCode"].ToString() ?? "EUR",
-                                DateCreated = DateTime.Now,
-                                TaxEntity = reader["TaxEntity"].ToString() ?? "Global",
-                                ProductCompanyTaxID = reader["ProductCompanyTaxID"].ToString() ?? string.Empty,
-                                SoftwareCertificateNumber = reader["SoftwareCertificateNumber"].ToString() ?? string.Empty,
-                                ProductID = reader["ProductID"].ToString() ?? "SAFTExtractor/PULSE DOMINOS",
-                                ProductVersion = reader["ProductVersion"].ToString() ?? "1.0"
-                            };
+                                    AuditFileVersion = reader["AuditFileVersion"].ToString() ?? "1.04_01",
+                                    CompanyID = reader["CompanyID"].ToString() ?? string.Empty,
+                                    TaxRegistrationNumber = reader["TaxRegistrationNumber"].ToString() ?? string.Empty,
+                                    TaxAccountingBasis = reader["TaxAccountingBasis"].ToString() ?? "F",
+                                    CompanyName = reader["CompanyName"].ToString() ?? string.Empty,
+                                    BusinessAddress = new CompanyAddress
+                                    {
+                                        BuildingNumber = reader["BuildingNumber"] != DBNull.Value ? reader["BuildingNumber"].ToString() : null,
+                                        StreetName = reader["StreetName"] != DBNull.Value ? reader["StreetName"].ToString() : null,
+                                        AddressDetail = reader["AddressDetail"].ToString() ?? string.Empty,
+                                        City = reader["City"].ToString() ?? string.Empty,
+                                        PostalCode = reader["PostalCode"].ToString() ?? string.Empty,
+                                        Region = reader["Region"] != DBNull.Value ? reader["Region"].ToString() : null,
+                                        Country = reader["Country"].ToString() ?? "PT"
+                                    },
+                                    FiscalYear = new DateTime(fiscalYear, 1, 1),
+                                    StartDate = SAFTDate.GetFiscalYearStartDate(fiscalYear),
+                                    EndDate = SAFTDate.GetFiscalYearEndDate(fiscalYear),
+                                    CurrencyCode = reader["CurrencyCode"].ToString() ?? "EUR",
+                                    DateCreated = DateTime.Now,
+                                    TaxEntity = reader["TaxEntity"].ToString() ?? "Global",
+                                    ProductCompanyTaxID = reader["ProductCompanyTaxID"].ToString() ?? string.Empty,
+                                    SoftwareCertificateNumber = reader["SoftwareCertificateNumber"].ToString() ?? string.Empty,
+                                    ProductID = reader["ProductID"].ToString() ?? "SAFTExtractor/PULSE DOMINOS",
+                                    ProductVersion = reader["ProductVersion"].ToString() ?? "1.0"
+                                };
+                            }
+                            else
+                            {
+                                // SP executou mas não retornou dados
+                                throw new Exception(
+                                    $"A Stored Procedure 'spGetSAFTXMLHeaderDetails' não retornou dados.\n\n" +
+                                    $"LocationCode usado: '{SystemSettings.LocationCode}'\n\n" +
+                                    $"Verifique se:\n" +
+                                    $"1. O LocationCode '{SystemSettings.LocationCode}' existe na base de dados\n" +
+                                    $"2. Existem dados de empresa configurados para este LocationCode\n" +
+                                    $"3. A SP está a retornar os campos corretos"
+                                );
+                            }
                         }
                     }
                 }
             }
-            
-            throw new Exception("Não foi possível obter o header SAFT. Verifique a configuração da base de dados.");
+            catch (SqlException sqlEx)
+            {
+                // Erro específico de SQL Server
+                if (sqlEx.Number == 2812) // SP não encontrada
+                {
+                    throw new Exception(
+                        $"ERRO: Stored Procedure 'spGetSAFTXMLHeaderDetails' não foi encontrada!\n\n" +
+                        $"A SP precisa existir na base de dados para a aplicação funcionar.\n\n" +
+                        $"Verifique a pasta 'Original SP' no repositório para obter o código SQL.\n\n" +
+                        $"Detalhes técnicos: {sqlEx.Message}",
+                        sqlEx
+                    );
+                }
+                else if (sqlEx.Number == 4060) // Base de dados não existe
+                {
+                    throw new Exception(
+                        $"ERRO: Base de dados não encontrada!\n\n" +
+                        $"Connection String: {PulseConnection.GetConnectionStringSafe()}\n\n" +
+                        $"Verifique o App.config e confirme que a base de dados existe.\n\n" +
+                        $"Detalhes técnicos: {sqlEx.Message}",
+                        sqlEx
+                    );
+                }
+                else if (sqlEx.Number == 18456) // Login failed
+                {
+                    throw new Exception(
+                        $"ERRO: Falha na autenticação!\n\n" +
+                        $"Verifique as credenciais no App.config.\n" +
+                        $"Se usar Integrated Security, confirme que tem permissões.\n\n" +
+                        $"Detalhes técnicos: {sqlEx.Message}",
+                        sqlEx
+                    );
+                }
+                else
+                {
+                    throw new Exception(
+                        $"ERRO SQL ao obter header SAFT:\n\n" +
+                        $"LocationCode: '{SystemSettings.LocationCode}'\n" +
+                        $"Código erro SQL: {sqlEx.Number}\n" +
+                        $"Mensagem: {sqlEx.Message}\n\n" +
+                        $"Verifique a configuração da base de dados no App.config.",
+                        sqlEx
+                    );
+                }
+            }
+            catch (Exception ex) when (ex.Message.Contains("spGetSAFTXMLHeaderDetails"))
+            {
+                // Re-throw se já for uma exceção que tratamos
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Erro genérico
+                throw new Exception(
+                    $"ERRO ao conectar à base de dados PULSE DOMINOS:\n\n" +
+                    $"Connection String: {PulseConnection.GetConnectionStringSafe()}\n" +
+                    $"LocationCode: '{SystemSettings.LocationCode}'\n\n" +
+                    $"Verifique:\n" +
+                    $"1. O SQL Server está em execução\n" +
+                    $"2. O App.config tem a connection string correta\n" +
+                    $"3. Tem permissões para aceder à base de dados\n\n" +
+                    $"Detalhes técnicos: {ex.Message}",
+                    ex
+                );
+            }
         }
     }
 }

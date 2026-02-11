@@ -25,6 +25,14 @@ namespace SAFTExtractor.Services
         }
         
         /// <summary>
+        /// Testa a conexão e retorna detalhes
+        /// </summary>
+        public static (bool success, string message) TestConnectionWithDetails()
+        {
+            return PulseConnection.TestConnectionWithDetails();
+        }
+        
+        /// <summary>
         /// Inicializa a aplicação com as configurações necessárias
         /// </summary>
         public static void Initialize()
@@ -32,16 +40,28 @@ namespace SAFTExtractor.Services
             // Inicializar configurações do sistema
             SystemSettings.Initialize();
             
+            Console.WriteLine("=== SAFTExtractor - PULSE DOMINOS ===");
+            Console.WriteLine($"LocationCode configurado: '{SystemSettings.LocationCode}'");
+            Console.WriteLine($"Connection String: {PulseConnection.GetConnectionStringSafe()}");
+            Console.WriteLine();
+            
             // Testar conexão
-            if (!TestConnection())
+            var (success, message) = TestConnectionWithDetails();
+            
+            if (success)
             {
-                Console.WriteLine("AVISO: Não foi possível conectar à base de dados PULSE.");
-                Console.WriteLine("Verifique a connection string no app.config ou configure manualmente.");
+                Console.WriteLine("✓ " + message);
             }
             else
             {
-                Console.WriteLine($"Aplicação SAFTExtractor inicializada. LocationCode: {SystemSettings.LocationCode}");
+                Console.WriteLine("✗ AVISO: Não foi possível conectar à base de dados PULSE.");
+                Console.WriteLine(message);
+                Console.WriteLine();
+                Console.WriteLine("A aplicação pode não funcionar corretamente.");
+                Console.WriteLine("Verifique a connection string no App.config.");
             }
+            
+            Console.WriteLine();
         }
     }
 }
