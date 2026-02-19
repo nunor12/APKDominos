@@ -1,0 +1,56 @@
+USE [POS]
+GO
+/****** Object:  StoredProcedure [dbo].[spGetShipToAddressesForSAFTCustomers]    Script Date: 06/02/2026 12:58:03 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+
+-- ========================================================   
+-- Author:  Sourav Saraf    
+-- Create date: 05/07/2015   
+-- Description: Get ShipToAddresses of Customers for SAF-T  
+-- ======================================================= 
+ALTER PROCEDURE [dbo].[spGetShipToAddressesForSAFTCustomers]   
+(  
+ @LocationCode AS NVARCHAR(8), 
+ @CustomerIds AS NVARCHAR(MAX), 
+ @InvoiceNumbers AS NVARCHAR(MAX)
+)  
+AS  
+BEGIN  
+SET NOCOUNT ON  
+  
+SELECT DISTINCT    
+	RD.OrderStreetName AS StreetName,  
+	RD.OrderStreetNumber AS StreetNumber,  
+	RD.OrderCityName AS City,    
+	RD.OrderPostalCode AS Postal,  
+	ORD.Customer_Code AS CustomerCode
+	FROM GovernmentReceipt..OrderHashes (NOLOCK) AS OHS  
+	LEFT JOIN Orders (NOLOCK) AS ORD ON  
+	(  
+		ORD.Location_Code = OHS.Location_Code   
+		AND ORD.Order_Number = OHS.Order_Number   
+		AND ORD.Order_Date = OHS.Order_Date  
+		AND ORD.Customer_Code IN (SELECT * FROM dbo.udfSplit(@CustomerIds ,'|'))  
+	)   
+	LEFT JOIN GovernmentReceipt..ReceiptData (NOLOCK) AS RD ON   
+  	(  
+   		RD.Location_Code = ORD.Location_Code   
+   		AND RD.Order_Number = ORD.Order_Number   
+   		AND RD.Order_Date = ORD.Order_Date  
+  	) 
+  	 INNER JOIN ServiceMethods (NOLOCK) AS SM ON  
+	(  
+		SM.Location_Code=ORD.Location_Code  
+		AND SM.ServiceMethodCode=ORD.Order_Type_Code
+   	 )   
+	WHERE  
+	(   
+		OHS.Location_Code = @LocationCode    
+		AND OHS.InvoiceNumber IN (SELECT * FROM dbo.udfSplit(@InvoiceNumbers ,'|')) 
+		AND SM.ServiceMethodGroup = 'DELIVERY'  
+	)  
+	ORDER BY CustomerCode
+END

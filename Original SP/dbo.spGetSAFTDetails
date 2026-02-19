@@ -1,0 +1,27 @@
+USE [POS]
+GO
+/****** Object:  StoredProcedure [dbo].[spGetSAFTDetails]    Script Date: 06/02/2026 12:56:32 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+
+-- ==================================================================  
+-- Author:  Sourav Saraf  
+-- Create date: 01/09/2015 
+-- Description: Get constant fields for the SAFT file.
+-- ==================================================================
+ALTER PROCEDURE [dbo].[spGetSAFTDetails]
+(
+	@LocationCode AS NVARCHAR(8)
+)
+AS
+BEGIN
+SET NOCOUNT ON
+
+SELECT 
+	Setting,
+	Value 
+	FROM GovernmentReceipt..SAFTDetails (NOLOCK)
+	WHERE Location_Code = @LocationCode
+END
