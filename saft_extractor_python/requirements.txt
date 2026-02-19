@@ -1,0 +1,14 @@
+# SAFT Extractor Python - Dependências
+# Instalar com: pip install -r requirements.txt
+
+# Conexão SQL Server
+pyodbc>=5.0.0
+
+# Geração XML (lxml é mais poderoso que xml.etree)
+lxml>=4.9.0
+
+# Configuração
+configparser>=6.0.0
+
+# Datas
+python-dateutil>=2.8.0
