@@ -1,10 +1,61 @@
 # APKDominos - Extração de Dados SAFT do PULSE DOMINOS
 
-Aplicação C# WinForms para extração de dados SAFT (Standard Audit File for Tax) do sistema PULSE DOMINOS.
+Aplicação para extração de dados SAFT (Standard Audit File for Tax) do sistema PULSE DOMINOS.
+
+## 🚀 Versões Disponíveis
+
+Este repositório contém **2 versões** da aplicação SAFT:
+
+### 1. 🐍 **Python** (Recomendado para Testes e Desenvolvimento)
+- **Localização:** `saft_extractor_python/`
+- **Vantagens:** 
+  - ✅ Sem necessidade de compilar
+  - ✅ Modificações instantâneas
+  - ✅ Multiplataforma (Windows, Linux, Mac)
+  - ✅ Fácil de debugar
+- **Como usar:** Veja [saft_extractor_python/README.md](saft_extractor_python/README.md)
+
+### 2. 💻 **C# / .NET** (Versão Compilada)
+- **Localização:** `SAFTExtractor/`
+- **Vantagens:**
+  - ✅ Performance superior
+  - ✅ Interface Windows Forms
+  - ✅ Executável standalone (.exe)
+- **Como usar:** Veja instruções abaixo
+
+## 🎯 Escolha a Versão Ideal
+
+| Cenário | Versão Recomendada |
+|---------|-------------------|
+| **Testes e desenvolvimento** | 🐍 Python |
+| **Modificar código frequentemente** | 🐍 Python |
+| **Servidor Linux** | 🐍 Python |
+| **Produção Windows** | 💻 C# |
+| **Interface gráfica** | 💻 C# |
+| **Performance crítica** | 💻 C# |
+
+---
+
+# 🐍 Versão Python (Quick Start)
+
+```bash
+cd saft_extractor_python
+pip install -r requirements.txt
+python saft_extractor.py --test-connection
+python saft_extractor.py --start 2024-01-01 --end 2024-12-31
+```
+
+**📚 Documentação Python:**
+- **[README.md](saft_extractor_python/README.md)** - Guia completo
+- **[HEADER_EXPLANATION.md](saft_extractor_python/HEADER_EXPLANATION.md)** - Como funciona o header (2 SPs)
+
+---
+
+# 💻 Versão C# / .NET
 
 ## 📋 Descrição
 
-Esta aplicação permite extrair dados do sistema PULSE DOMINOS e gerar ficheiros SAFT-PT conformes com o schema da Autoridade Tributária (AT) portuguesa. O ficheiro gerado pode ser validado e submetido à AT.
+Aplicação C# WinForms para extração de dados SAFT do PULSE DOMINOS e geração de ficheiros SAFT-PT conformes com o schema da Autoridade Tributária (AT) portuguesa.
 
 ## 🚀 Funcionalidades
 
